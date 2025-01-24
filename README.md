@@ -25,6 +25,7 @@ SSH service should be enabled:
 ![image](https://github.com/user-attachments/assets/d037fb23-daf2-4012-8843-632b34e92972)
 
 Chousen user should be abble to connect vis SSH from Zabbix Server.
+
 ![image](https://github.com/user-attachments/assets/ddef53fd-fa88-4f3b-9472-803db78d77f1)
 ![image](https://github.com/user-attachments/assets/9b54a0b4-6645-42a1-832d-015879e55073)
 
