@@ -1,4 +1,4 @@
-# Zabbix Template for Uptime Kuma monitoring
+# Zabbix Template for TrueNAS rsync tasks monitoring
 
 ## Overview
 For Zabbix version: 7.0 and higher. Can be easily backported to any earlier version.
