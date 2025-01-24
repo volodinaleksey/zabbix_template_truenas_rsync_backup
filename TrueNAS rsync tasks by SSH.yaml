@@ -1,0 +1,54 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: c07ee5debf5f4a3faf16c1ee5e8e4942
+      name: NAS
+  templates:
+    - uuid: ae1bc98c642b4b869a4f80848fd9894e
+      template: 'TrueNAS rsync tasks by SSH'
+      name: 'TrueNAS rsync tasks by SSH'
+      groups:
+        - name: NAS
+      discovery_rules:
+        - uuid: 589c84de15134e40b82978b3fab4dfed
+          name: 'TrueNAS rsync tasks dicovery'
+          type: SSH
+          key: 'ssh.run[rsync.tasks.discovery]'
+          delay: 1h
+          params: 'cli -i -c ''system alert list'' -m table | grep -o ''Rsync "[^"]*" task for "[^"]*"'' | grep -v direction'
+          username: '{$TRUENAS.SSH.USER}'
+          password: '{$TRUENAS.SSH.PASS}'
+          item_prototypes:
+            - uuid: ccbf2c583bb449829983b9f2dac9b1da
+              name: '{#RSYNC.TASK} task state'
+              type: SSH
+              key: 'ssh.run[{#RSYNC.TASK}.state]'
+              delay: 15m
+              value_type: CHAR
+              trends: '0'
+              params: 'cli -i -c ''system alert list'' -m table | grep ''{#RSYNC.TASK}'' | awk -F ''|'' ''{print $4}'' | xargs'
+              username: '{$TRUENAS.SSH.USER}'
+              password: '{$TRUENAS.SSH.PASS}'
+              trigger_prototypes:
+                - uuid: 9fc5a45a3c3b4451a5bd9a0b258e3a37
+                  expression: 'last(/TrueNAS rsync tasks by SSH/ssh.run[{#RSYNC.TASK}.state]) <> "RsyncSuccess"'
+                  name: '{#RSYNC.TASK} task failed'
+                  priority: HIGH
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var lld = [];
+                  var lines = value.split("\n");
+                  var lines_num = lines.length;
+                  for (i = 0; i < lines_num; i++)
+                  {
+                    var row = {};
+                    row["{#RSYNC.TASK}"] = lines[i];
+                    lld.push(row);
+                  }
+                  return JSON.stringify(lld); 
+      macros:
+        - macro: '{$TRUENAS.SSH.PASS}'
+          type: SECRET_TEXT
+        - macro: '{$TRUENAS.SSH.USER}'
