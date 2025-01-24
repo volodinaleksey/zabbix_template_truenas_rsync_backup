@@ -20,7 +20,7 @@ zabbix_export:
           password: '{$TRUENAS.SSH.PASS}'
           item_prototypes:
             - uuid: ccbf2c583bb449829983b9f2dac9b1da
-              name: '{#RSYNC.TASK} task state'
+              name: '{#RSYNC.TASK} state'
               type: SSH
               key: 'ssh.run[{#RSYNC.TASK}.state]'
               delay: 15m
@@ -32,7 +32,7 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: 9fc5a45a3c3b4451a5bd9a0b258e3a37
                   expression: 'last(/TrueNAS rsync tasks by SSH/ssh.run[{#RSYNC.TASK}.state]) <> "RsyncSuccess"'
-                  name: '{#RSYNC.TASK} task failed'
+                  name: '{#RSYNC.TASK} failed'
                   priority: HIGH
           preprocessing:
             - type: JAVASCRIPT
