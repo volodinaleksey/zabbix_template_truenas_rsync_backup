@@ -3,8 +3,10 @@
 ## Overview
 For Zabbix version: 7.0 and higher. Can be easily backported to any earlier version.
 
-SSH is using for TrueNAS rsync tasks monitoring.
-![image](https://github.com/user-attachments/assets/64aa29ea-8429-46d1-a668-6d99596e51ed)
+SSH is using for TrueNAS rsync tasks monitoring. SInce there is no easy way how you cat track your rsync tasks state we arewill use cli command "system alert list" to check all events related to rsync tasks.
+![Rsync tasks](https://github.com/user-attachments/assets/64aa29ea-8429-46d1-a668-6d99596e51ed)
+![Events](https://github.com/user-attachments/assets/f36f3b39-9de8-494e-adbf-d120e08f3377)
+
 
 
 This template is developed for monitoring state of TrueNAS rsync tasks:
@@ -53,7 +55,7 @@ There are no template links in this template.
 
 |Name|Description|Type|Key and additional info|
 |----|-----------|----|----|
-|TrueNAS rsync tasks dicoveryy|Discover all TrueNAS rsync tasks|SSH Agent|ssh.run[rsync.tasks.discovery]|
+|TrueNAS rsync tasks dicovery|Discover all TrueNAS rsync tasks|SSH Agent|ssh.run[rsync.tasks.discovery]|
 
 ## Items collected
 
