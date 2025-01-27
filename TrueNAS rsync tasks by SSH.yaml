@@ -18,6 +18,11 @@ zabbix_export:
           params: 'cli -i -c ''system alert list'' -m table | grep -o ''Rsync "[^"]*" task for "[^"]*"'' | grep -v direction'
           username: '{$TRUENAS.SSH.USER}'
           password: '{$TRUENAS.SSH.PASS}'
+          filter:
+            conditions:
+              - macro: '{#RSYNC.TASK}'
+                operator: NOT_EXISTS
+                formulaid: A
           item_prototypes:
             - uuid: ccbf2c583bb449829983b9f2dac9b1da
               name: '{#RSYNC.TASK} state'
@@ -51,4 +56,7 @@ zabbix_export:
       macros:
         - macro: '{$TRUENAS.SSH.PASS}'
           type: SECRET_TEXT
+          description: 'TrueNAS SSH password.'
         - macro: '{$TRUENAS.SSH.USER}'
+          value: root
+          description: 'TrueNAS SSH user.'
