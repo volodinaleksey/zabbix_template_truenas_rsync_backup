@@ -30,7 +30,7 @@ SSH service should be enabled:
 ![SSH](https://github.com/user-attachments/assets/fd67fe9e-9542-40e9-b21f-6c30a44dd184)
 
 
-Chousen user should be abble to connect vis SSH from Zabbix Server.
+SSH user should be able to connect via SSH from the Zabbix Server.
 
 ![Users](https://github.com/user-attachments/assets/f0927d5c-8ce6-4512-8fde-7333ea951fc3)
 
