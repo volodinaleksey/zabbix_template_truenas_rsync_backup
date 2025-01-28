@@ -1,60 +1,78 @@
 zabbix_export:
   version: '7.0'
   template_groups:
-    - uuid: c07ee5debf5f4a3faf16c1ee5e8e4942
-      name: NAS
+    - uuid: d08fd00d488b4a2796a12aad6299d49c
+      name: NAS/TrueNAS
   templates:
-    - uuid: ae1bc98c642b4b869a4f80848fd9894e
+    - uuid: 032499dbe1f143ab87684a5af88da811
       template: 'TrueNAS rsync tasks by SSH'
       name: 'TrueNAS rsync tasks by SSH'
+      description: 'Zabbix Template for TrueNAS SCALE rsync tasks monitoring.'
       groups:
-        - name: NAS
+        - name: NAS/TrueNAS
       discovery_rules:
-        - uuid: 589c84de15134e40b82978b3fab4dfed
-          name: 'TrueNAS rsync tasks dicovery'
+        - uuid: 33fdc7a0a3dc439ab5076a1ce6a4890e
+          name: 'Rsync tasks discovery'
           type: SSH
           key: 'ssh.run[rsync.tasks.discovery]'
           delay: 1h
-          params: 'cli -i -c ''system alert list'' -m table | grep -o ''Rsync "[^"]*" task for "[^"]*"'' | grep -v direction'
+          params: 'midclt call rsynctask.query | jq ''[.[] | { "{#RSYNC.ID}": .id, "{#RSYNC.DESCR}": .desc }]'''
           username: '{$TRUENAS.SSH.USER}'
-          password: '{$TRUENAS.SSH.PASS}'
-          filter:
-            conditions:
-              - macro: '{#RSYNC.TASK}'
-                operator: NOT_EXISTS
-                formulaid: A
+          password: '{$TRUENAS.SSH.PASSWORD}'
+          description: 'Discover all TrueNAS rsync tasks'
           item_prototypes:
-            - uuid: ccbf2c583bb449829983b9f2dac9b1da
-              name: '{#RSYNC.TASK} state'
+            - uuid: 82545b7748c84e449a43faad99912be9
+              name: '"{#RSYNC.DESCR}" task description'
               type: SSH
-              key: 'ssh.run[{#RSYNC.TASK}.state]'
-              delay: 15m
+              key: 'ssh.run[{#RSYNC.ID}.desc]'
+              delay: 30m
               value_type: CHAR
               trends: '0'
-              params: 'cli -i -c ''system alert list'' -m table | grep ''{#RSYNC.TASK}'' | awk -F ''|'' ''{print $4}'' | xargs'
+              params: 'midclt call rsynctask.get_instance {#RSYNC.ID} | jq -r ''"\(.direction) from \(.path) to \(.remotehost):\(.remotepath)"'''
               username: '{$TRUENAS.SSH.USER}'
-              password: '{$TRUENAS.SSH.PASS}'
-              trigger_prototypes:
-                - uuid: 9fc5a45a3c3b4451a5bd9a0b258e3a37
-                  expression: 'last(/TrueNAS rsync tasks by SSH/ssh.run[{#RSYNC.TASK}.state]) <> "RsyncSuccess"'
-                  name: '{#RSYNC.TASK} failed'
-                  priority: HIGH
-          preprocessing:
-            - type: JAVASCRIPT
-              parameters:
-                - |
-                  var lld = [];
-                  var lines = value.split("\n");
-                  var lines_num = lines.length;
-                  for (i = 0; i < lines_num; i++)
-                  {
-                    var row = {};
-                    row["{#RSYNC.TASK}"] = lines[i];
-                    lld.push(row);
-                  }
-                  return JSON.stringify(lld); 
+              password: '{$TRUENAS.SSH.PASSWORD}'
+              description: 'Human readable rsync task parameters.'
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+            - uuid: 5ddc9b7e2ea04963beafb5ed937d9f3b
+              name: '"{#RSYNC.DESCR}" task error message'
+              type: SSH
+              key: 'ssh.run[{#RSYNC.ID}.error]'
+              delay: 5m
+              value_type: CHAR
+              trends: '0'
+              params: 'midclt call rsynctask.get_instance {#RSYNC.ID} | jq ''.job.error'' | tr -d ''"'''
+              username: '{$TRUENAS.SSH.USER}'
+              password: '{$TRUENAS.SSH.PASSWORD}'
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+            - uuid: 06bf59d02911431f9ab969aecea4b635
+              name: '"{#RSYNC.DESCR}" task state'
+              type: SSH
+              key: 'ssh.run[{#RSYNC.ID}.state]'
+              delay: 5m
+              value_type: CHAR
+              trends: '0'
+              params: 'midclt call rsynctask.get_instance {#RSYNC.ID} | jq ''.job.state'' | tr -d ''"'''
+              username: '{$TRUENAS.SSH.USER}'
+              password: '{$TRUENAS.SSH.PASSWORD}'
+              preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+          trigger_prototypes:
+            - uuid: 09a0653a226e4b11b3fc8730fa95ddbc
+              expression: |
+                last(/TrueNAS rsync tasks by SSH/ssh.run[{#RSYNC.ID}.state]) = "FAILED" and
+                last(/TrueNAS rsync tasks by SSH/ssh.run[{#RSYNC.ID}.error]) <> "null"
+              name: '"{#RSYNC.DESCR}" task state is FAILED - {ITEM.LASTVALUE2}'
+              priority: HIGH
       macros:
-        - macro: '{$TRUENAS.SSH.PASS}'
+        - macro: '{$TRUENAS.SSH.PASSWORD}'
           type: SECRET_TEXT
           description: 'TrueNAS SSH password.'
         - macro: '{$TRUENAS.SSH.USER}'
