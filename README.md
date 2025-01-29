@@ -10,6 +10,7 @@ SSH is using for TrueNAS rsync tasks monitoring.
 This template is developed for monitoring state of TrueNAS SCALE rsync tasks:
 * Monitor state
 * Error messages
+* Duration
 
 
 LLD using for tasks discovery.
@@ -70,6 +71,7 @@ There are no template links in this template.
 * rsync task state
 * rsync error message
 * rsync human readable description
+* rsync duration time
 
 ## Triggers
 
