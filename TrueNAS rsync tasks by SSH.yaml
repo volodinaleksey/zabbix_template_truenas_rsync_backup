@@ -21,17 +21,32 @@ zabbix_export:
           password: '{$TRUENAS.SSH.PASSWORD}'
           description: 'Discover all TrueNAS rsync tasks'
           item_prototypes:
+            - uuid: c1fa0d60ae344baeb37e5f6e72c62743
+              name: '"{#RSYNC.DESCR}" task duration'
+              type: CALCULATED
+              key: 'calc[{#RSYNC.ID}.duration]'
+              delay: 5m
+              units: s
+              params: 'last(//ssh.run[{#RSYNC.ID}.ftime]) - last(//ssh.run[{#RSYNC.ID}.stime])'
+              trigger_prototypes:
+                - uuid: 12fd61ba5cf04aea9efe0d1ef0e82dc3
+                  expression: |
+                    last(/TrueNAS rsync tasks by SSH/calc[{#RSYNC.ID}.duration]) > 1.1 * avg(/TrueNAS rsync tasks by SSH/calc[{#RSYNC.ID}.duration],7d)
+                    or
+                    last(/TrueNAS rsync tasks by SSH/calc[{#RSYNC.ID}.duration]) < 0.9 * avg(/TrueNAS rsync tasks by SSH/calc[{#RSYNC.ID}.duration],7d)
+                  name: '"{#RSYNC.DESCR}" task duration time is abnormal'
+                  priority: INFO
             - uuid: 82545b7748c84e449a43faad99912be9
               name: '"{#RSYNC.DESCR}" task description'
               type: SSH
               key: 'ssh.run[{#RSYNC.ID}.desc]'
-              delay: 30m
+              delay: 1h
               value_type: CHAR
               trends: '0'
               params: 'midclt call rsynctask.get_instance {#RSYNC.ID} | jq -r ''"\(.direction) from \(.path) to \(.remotehost):\(.remotepath)"'''
               username: '{$TRUENAS.SSH.USER}'
               password: '{$TRUENAS.SSH.PASSWORD}'
-              description: 'Human readable rsync task parameters.'
+              description: 'Human readable rsync task summary.'
               preprocessing:
                 - type: DISCARD_UNCHANGED
                   parameters:
@@ -50,6 +65,23 @@ zabbix_export:
                 - type: DISCARD_UNCHANGED
                   parameters:
                     - ''
+            - uuid: a198f3d082b74f9dae7e6365f783af5e
+              name: '"{#RSYNC.DESCR}" task finish time'
+              type: SSH
+              key: 'ssh.run[{#RSYNC.ID}.ftime]'
+              delay: 5m
+              trends: '0'
+              units: unixtime
+              params: 'midclt call rsynctask.get_instance {#RSYNC.ID} | jq ''.job.time_finished["$date"]'''
+              username: '{$TRUENAS.SSH.USER}'
+              password: '{$TRUENAS.SSH.PASSWORD}'
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
             - uuid: 06bf59d02911431f9ab969aecea4b635
               name: '"{#RSYNC.DESCR}" task state'
               type: SSH
@@ -61,6 +93,23 @@ zabbix_export:
               username: '{$TRUENAS.SSH.USER}'
               password: '{$TRUENAS.SSH.PASSWORD}'
               preprocessing:
+                - type: DISCARD_UNCHANGED
+                  parameters:
+                    - ''
+            - uuid: 88d42893cf634ea68b4dcbb682c11aee
+              name: '"{#RSYNC.DESCR}" task start time'
+              type: SSH
+              key: 'ssh.run[{#RSYNC.ID}.stime]'
+              delay: 5m
+              trends: '0'
+              units: unixtime
+              params: 'midclt call rsynctask.get_instance {#RSYNC.ID} | jq ''.job.time_started["$date"]'''
+              username: '{$TRUENAS.SSH.USER}'
+              password: '{$TRUENAS.SSH.PASSWORD}'
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
                 - type: DISCARD_UNCHANGED
                   parameters:
                     - ''
