@@ -36,6 +36,9 @@ SSH user should be able to connect via SSH from the Zabbix Server.
 
 ![Allow ssh login](https://github.com/user-attachments/assets/ba665495-3817-4f65-a9f1-cf425129e3d1)
 
+Rsync task should have proper Description
+![Task description](https://github.com/user-attachments/assets/c105174e-396a-4d0a-8281-9e5d2f9b8f5e)
+
 
 
 ## Author
